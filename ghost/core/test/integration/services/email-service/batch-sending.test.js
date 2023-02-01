@@ -184,7 +184,7 @@ describe('Batch sending tests', function () {
     });
 
     afterEach(async function () {
-        configUtils.restore();
+        await configUtils.restore();
         await models.Settings.edit([{
             key: 'email_verification_required',
             value: false
@@ -653,7 +653,7 @@ describe('Batch sending tests', function () {
         sinon.assert.calledOnce(getSignupEvents);
         assert.equal(settingsCache.get('email_verification_required'), true);
 
-        configUtils.restore();
+        await configUtils.restore();
     });
 
     describe('Analytics', function () {
@@ -740,6 +740,20 @@ describe('Batch sending tests', function () {
             assert.doesNotMatch(html, /\m=/);
             const links = await linkRedirectRepository.getAll({filter: 'post_id:' + emailModel.get('post_id')});
             assert.equal(links.length, 0);
+        });
+    });
+
+    describe('HTML-content', function () {
+        it('Does not HTML escape feature_image_caption', async function () {
+            const {html, plaintext} = await sendEmail({
+                feature_image: 'https://example.com/image.jpg',
+                feature_image_caption: 'Testing <b>feature image caption</b>'
+            });
+            // Check html contains text without escaping
+            assert.match(html, /Testing <b>feature image caption<\/b>/);
+
+            // Check plaintext version dropped the bold tag
+            assert.match(plaintext, /Testing feature image caption/);
         });
     });
 
