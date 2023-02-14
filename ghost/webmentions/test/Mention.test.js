@@ -26,21 +26,22 @@ describe('Mention', function () {
                 'sourceAuthor',
                 'sourceExcerpt',
                 'sourceFavicon',
-                'sourceFeaturedImage'
+                'sourceFeaturedImage',
+                'verified'
             ];
             assert.deepEqual(actual, expected);
         });
     });
 
     describe('verify', function () {
-        it('Does basic check for the target URL and updates verified property', async function () {
+        it('Sets the verify property appropriately', async function () {
             const mention = await Mention.create(validInput);
             assert(!mention.verified);
 
-            mention.verify('<a href="https://target.com/">');
+            mention.verify(true);
             assert(mention.verified);
 
-            mention.verify('<a href="https://not-da-target.com">');
+            mention.verify(false);
             assert(!mention.verified);
         });
     });

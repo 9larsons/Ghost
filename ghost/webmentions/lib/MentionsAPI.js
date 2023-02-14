@@ -1,4 +1,5 @@
 const errors = require('@tryghost/errors');
+const cheerio = require('cheerio');
 const Mention = require('./Mention');
 
 /**
@@ -72,6 +73,10 @@ const Mention = require('./Mention');
  * @prop {(url: URL) => Promise<WebmentionMetadata>} fetch
  */
 
+/**
+ * @typedef {(url: string, config: Object) => Promise} IExternalRequest
+ */
+
 module.exports = class MentionsAPI {
     /** @type {IMentionRepository} */
     #repository;
@@ -81,6 +86,8 @@ module.exports = class MentionsAPI {
     #routingService;
     /** @type {IWebmentionMetadata} */
     #webmentionMetadata;
+    /** @type {IExternalRequest} */
+    #externalRequest;
 
     /**
      * @param {object} deps
@@ -88,12 +95,14 @@ module.exports = class MentionsAPI {
      * @param {IResourceService} deps.resourceService
      * @param {IRoutingService} deps.routingService
      * @param {IWebmentionMetadata} deps.webmentionMetadata
+     * @param {IExternalRequest} deps.externalRequest
      */
     constructor(deps) {
         this.#repository = deps.repository;
         this.#resourceService = deps.resourceService;
         this.#routingService = deps.routingService;
         this.#webmentionMetadata = deps.webmentionMetadata;
+        this.#externalRequest = deps.externalRequest;
     }
 
     /**
@@ -172,6 +181,25 @@ module.exports = class MentionsAPI {
             mention.delete();
         }
 
+        // TODO: right now we use the oembed service to pull the metadata and this call to verify the link, i.e. two calls
+        //  we should probably refactor the metadata pull into one call that collects both the metadata
+        //  via metascraper & parse the html to verify the link existence
+        let verified;
+        try {
+            let response = await this.#externalRequest(webmention.source.href,{
+                throwHttpErrors: false,
+                followRedirects: true,
+                maxRedirects: 10
+            });
+            // should not need to check for error codes because we have called to this url above
+            verified = await this.verifyTargetInSource(response,webmention.target);
+            if (mention) {
+                mention.verify(verified);
+            }
+        } catch (err) {
+            console.log(`Error verifying source of Webmention`,err);
+        }
+
         if (!mention) {
             mention = await Mention.create({
                 source: webmention.source,
@@ -184,11 +212,23 @@ module.exports = class MentionsAPI {
                 sourceAuthor: metadata.author,
                 sourceExcerpt: metadata.excerpt,
                 sourceFavicon: metadata.favicon,
-                sourceFeaturedImage: metadata.image
+                sourceFeaturedImage: metadata.image,
+                verified: verified
             });
         }
         await this.#repository.save(mention);
-
         return mention;
+    }
+
+    /**
+     * @param {object} response
+     * @param {URL} target
+     *
+     * @returns {Promise<Boolean>}
+     */
+    async verifyTargetInSource({body},target) {
+        const $ = cheerio.load(body);
+        let hasTarget = $(`a[href="${target.href}"]`).length ? true : false;
+        return hasTarget;
     }
 };

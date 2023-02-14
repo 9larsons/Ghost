@@ -19,10 +19,10 @@ module.exports = class Mention {
     }
 
     /**
-     * @param {string} html
+     * @param {Boolean} isVerified
      */
-    verify(html) {
-        if (html.includes(this.target.href)) {
+    verify(isVerified) {
+        if (isVerified) {
             this.#verified = true;
         } else {
             this.#verified = false;
@@ -153,7 +153,8 @@ module.exports = class Mention {
             sourceAuthor: this.sourceAuthor,
             sourceExcerpt: this.sourceExcerpt,
             sourceFavicon: this.sourceFavicon,
-            sourceFeaturedImage: this.sourceFeaturedImage
+            sourceFeaturedImage: this.sourceFeaturedImage,
+            verified: this.verified
         };
     }
 
@@ -165,6 +166,7 @@ module.exports = class Mention {
         this.#timestamp = data.timestamp;
         this.#payload = data.payload;
         this.#resourceId = data.resourceId;
+        this.#verified = data.verified;
     }
 
     /**
@@ -232,13 +234,20 @@ module.exports = class Mention {
             }
         }
 
+        /** @type {Boolean} */
+        let verified = false;
+        if (data.verified) {
+            verified = true;
+        }
+
         const mention = new Mention({
             id,
             source,
             target,
             timestamp,
             payload,
-            resourceId
+            resourceId,
+            verified
         });
 
         mention.setSourceMetadata(data);

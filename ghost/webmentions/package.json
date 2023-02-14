@@ -18,10 +18,11 @@
     "lib"
   ],
   "devDependencies": {
+    "bson-objectid": "2.0.4",
     "c8": "7.12.0",
+    "got": "^12.5.3",
     "mocha": "10.2.0",
     "nock": "13.3.0",
-    "bson-objectid": "2.0.4",
     "sinon": "15.0.1"
   },
   "dependencies": {
