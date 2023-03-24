@@ -428,6 +428,8 @@ module.exports = class MemberRepository {
 
         // only update newsletters if we are receiving newsletter data
         const needsNewsletters = memberData.newsletters || typeof memberData.subscribed === 'boolean';
+        console.log(`needsNewsletters`,needsNewsletters);
+        console.log(`memberData.subscribed`,memberData.subscribed);
 
         // Build list for withRelated
         const requiredRelations = [];
@@ -539,12 +541,17 @@ module.exports = class MemberRepository {
         if (needsNewsletters) {
             const existingNewsletters = initialMember.related('newsletters').models;
 
-            // This maps the old subscribed property to the new newsletters field
-            if (memberData.subscribed === false) {
-                memberData.newsletters = [];
-            } else if (memberData.subscribed === true && !existingNewsletters.find(n => n.get('status') === 'active')) {
-                const browseOptions = _.pick(options, 'transacting');
-                memberData.newsletters = await this.getSubscribeOnSignupNewsletters(browseOptions);
+            // this is for backwards compatibility
+            //  if we have no existing newsletter data, but we have the subscribed field, this is likely from an import
+            if (!memberData.newsletters) {
+                // and we should either unsub from all ...
+                if (memberData.subscribed === false) {
+                    memberData.newsletters = [];
+                // ... or sub to all active/signup newsletters
+                } else if (memberData.subscribed === true && !existingNewsletters.find(n => n.get('status') === 'active')) {
+                    const browseOptions = _.pick(options, 'transacting');
+                    memberData.newsletters = await this.getSubscribeOnSignupNewsletters(browseOptions);
+                }
             }
 
             // only ever populated with active newsletters - never archived ones
