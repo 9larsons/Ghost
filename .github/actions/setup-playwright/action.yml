@@ -4,7 +4,8 @@ description: "Setup Playwright."
 runs:
   using: "composite"
   steps:
-    - name: Disable man-db trigger refreshes (https://github.com/actions/runner-images/issues/10977)
+    - name: Disable man-db trigger refreshes (Linux only)
+      if: runner.os == 'Linux'
       shell: bash
       run: |
         echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
@@ -19,7 +20,9 @@ runs:
       name: Check if Playwright browser is cached
       id: playwright-cache
       with:
-        path: ~/.cache/ms-playwright
+        path: |
+          ~/.cache/ms-playwright
+          ~/Library/Caches/ms-playwright
         key: ${{ runner.os }}-Playwright-${{steps.playwright-version.outputs.version}}
 
     - name: Install Playwright browser if not cached
