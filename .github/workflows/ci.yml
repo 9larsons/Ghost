@@ -26,7 +26,7 @@ concurrency:
 jobs:
   job_setup:
     name: Setup
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     timeout-minutes: 15
     env:
       IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
@@ -179,7 +179,7 @@ jobs:
       node_test_matrix: ${{ steps.node_matrix.outputs.matrix }}
 
   job_lint:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_any_code == 'true'
     name: Lint
@@ -206,7 +206,7 @@ jobs:
       - run: yarn nx affected -t lint --base=${{ needs.job_setup.outputs.BASE_COMMIT }}
 
   job_i18n:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     name: i18n
     if: |
@@ -230,7 +230,7 @@ jobs:
         run: yarn nx run @tryghost/i18n:test
 
   job_admin-tests:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_admin == 'true'
     name: Admin tests - Chrome
@@ -265,7 +265,7 @@ jobs:
   job_browser-tests:
     name: Browser tests
     timeout-minutes: 60
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     steps:
     - uses: actions/checkout@v6
@@ -323,7 +323,7 @@ jobs:
         retention-days: 30
 
   job_unit-tests:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_any_code == 'true'
     strategy:
@@ -375,7 +375,7 @@ jobs:
           path: ghost/*/coverage/cobertura-coverage.xml
 
   job_acceptance-tests:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_core == 'true'
     strategy:
@@ -448,7 +448,7 @@ jobs:
             ghost/*/coverage-integration/cobertura-coverage.xml
 
   job_legacy-tests:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_core == 'true'
     strategy:
@@ -506,7 +506,7 @@ jobs:
         run: yarn test:ci:legacy
 
   job_admin_x_settings:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_admin_x_settings == 'true'
     name: Admin-X Settings tests
@@ -539,7 +539,7 @@ jobs:
           retention-days: 30
 
   job_activitypub:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_activitypub == 'true'
     name: ActivityPub tests
@@ -572,7 +572,7 @@ jobs:
           retention-days: 30
 
   job_comments_ui:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_comments_ui == 'true'
     name: Comments-UI tests
@@ -605,7 +605,7 @@ jobs:
           retention-days: 30
 
   job_signup_form:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_signup_form == 'true'
     name: Signup-form tests
@@ -641,7 +641,7 @@ jobs:
     name: Ghost-CLI tests
     needs: [job_setup]
     if: needs.job_setup.outputs.changed_core == 'true'
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -713,7 +713,7 @@ jobs:
         job_signup_form,
       ]
     if: always()
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: [self-hosted, macOS, X64]
     steps:
       - name: Output needs
         run: echo "${{ toJson(needs) }}"
